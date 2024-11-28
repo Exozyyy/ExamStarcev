@@ -1,0 +1,250 @@
+<html lang="en">
+  <head>
+    <title>exam</title>
+  </head>
+  <body>
+    <input type="text" id="registerLogin" placeholder="Username" />
+    <input type="password" id="registerPassword" placeholder="Password" />
+    <button onclick="register()">Register</button>
+
+    <input type="text" id="Login" placeholder="Username" />
+    <input type="password" id="Password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+    <br />
+    <table id="maintable">
+      <thead>
+        <tr>
+          номерзаявки
+        </tr>
+        <tr>
+          дата добавления
+        </tr>
+        <tr>
+          вид Оргтехники
+        </tr>
+        <tr>
+          модель
+        </tr>
+        <tr>
+          Описание проблемы
+        </tr>
+        <tr>
+          фио Клиента
+        </tr>
+        <tr>
+          Номер телефона
+        </tr>
+        <tr>
+          Статус заявки
+        </tr>
+        <tr>
+          Мастер
+        </tr>
+        <tr>
+          Тип проблемы
+        </tr>
+      </thead>
+      <td></td>
+    </table>
+    <br />
+    изменить заявку номер:
+    <input type="text" id="changeInput" />
+
+    поля которые можно изменить: <br />
+    <input type="text" id="changeStatus" /> Статус <br />
+    <input type="text" id="changeDescription" /> Описание проблемы <br />
+    <input type="text" id="changeMaster" /> Мастер<br />
+    <button onclick="changeReq()">изменить завяку</button>
+
+    поиск по номеру заявки<br />
+    <input type="text" id="searchInput" />
+    <button onclick="searchReq()">Найти заявку</button>
+
+    <br />
+    добавить новую заявку<br />
+    <input type="text" id="numReq" />
+    <input type="date" id="dateOfAdd" />
+    <input type="text" id="organziation" />
+    <input type="text" id="Model" />
+    <input type="text" id="Description" />
+    <input type="text" id="Fio" />
+    <input type="text" id="NumberPhone" />
+    <input type="text" id="Status" />
+    <input type="text" id="Master" />
+    <input type="text" id="Problem" />
+    <button onclick="addReq()">Добавить заявку</button>
+
+    <script>
+      async function searchReq() {
+        const maintable = document.getElementById("maintable");
+        const searchInput = document.getElementById("searchInput").value;
+        try {
+          const response = await fetch(
+            `http://localhost:3000/requests/${searchInput}`
+          );
+          const data = await response.json();
+
+          const row = document.createElement("tr");
+          row.innerHTML = ``;
+          row.innerHTML += `<td>${data.numReq}</td>
+            <td>${data.dateOfAdd}</td>
+            <td>${data.organziation}</td>
+            <td>${data.Model}</td>
+            <td>${data.Description}</td>
+            <td>${data.Fio}</td>
+            <td>${data.NumberPhone}</td>
+            <td>${data.Status}</td>
+            <td>${data.Master}</td>
+            <td>${data.Problem}</td>
+            `;
+          maintable.appendChild(row);
+        } catch (error) {
+          console.error("Ошибка", error);
+        }
+      }
+      async function getData() {
+        const maintable = document.getElementById("maintable");
+        try {
+          const response = await fetch("http://localhost:3000/");
+          const data = await response.json();
+          data.forEach((order) => {
+            const row = document.createElement("tr");
+            row.innerHTML = ``;
+            row.innerHTML += `<td>${order.numReq}</td>
+            <td>${order.dateOfAdd}</td>
+            <td>${order.organziation}</td>
+            <td>${order.Model}</td>
+            <td>${order.Description}</td>
+            <td>${order.Fio}</td>
+            <td>${order.NumberPhone}</td>
+            <td>${order.Status}</td>
+            <td>${order.Master}</td>
+            <td>${order.Problem}</td>
+            `;
+
+            maintable.appendChild(row);
+          });
+        } catch (error) {
+          console.error("Ошибка", error);
+        }
+      }
+      getData();
+      async function changeReq() {
+        const changeInput = document.getElementById("changeInput").value;
+        const changeStatus = document.getElementById("changeStatus").value;
+        const changeDescription =
+          document.getElementById("changeDescription").value;
+        const changeMaster = document.getElementById("changeMaster").value;
+
+        try {
+          const response = await fetch(`http://localhost:3000/${changeInput}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              Status: changeStatus,
+              Description: changeDescription,
+              Master: changeMaster,
+            }),
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          alert("Заявка изменена успешно");
+        } catch (error) {
+          console.error("Ошибка", error);
+        }
+      }
+
+      async function register() {
+        const registerLogin = document.getElementById("registerLogin").value;
+        const registerPassword =
+          document.getElementById("registerPassword").value;
+
+        try {
+          const response = await fetch("http://localhost:3000/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: registerLogin,
+              password: registerPassword,
+            }),
+          });
+
+          if (!response.ok) {
+            alert(`Регистрация не удалась`);
+            return;
+          }
+
+          alert("Регистрация успешна!");
+        } catch (error) {
+          alert(`Ошибка при регистрации: ${error}`);
+        }
+      }
+
+      async function login() {
+        const login = document.getElementById("Login").value;
+        const password = document.getElementById("Password").value;
+
+        try {
+          const response = await fetch("http://localhost:3000/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username: login, password: password }),
+          });
+
+          if (!response.ok) {
+            alert("Неправильное имя пользователя или пароль.");
+            return;
+          }
+
+          const data = await response.json();
+          localStorage.setItem("token", data.token);
+          alert("Авторизация успешна!");
+        } catch (error) {
+          alert(`Ошибка при авторизации: ${error}`);
+        }
+      }
+      async function addReq() {
+        const numReq = document.getElementById("numReq").value;
+        const dateOfAdd = document.getElementById("dateOfAdd").value;
+        const organziation = document.getElementById("organziation").value;
+        const Model = document.getElementById("Model").value;
+        const Description = document.getElementById("Description").value;
+        const Fio = document.getElementById("Fio").value;
+        const NumberPhone = document.getElementById("NumberPhone").value;
+        const Status = document.getElementById("Status").value;
+        const Master = document.getElementById("Master").value;
+        const Problem = document.getElementById("Problem").value;
+
+        try {
+          const response = await fetch("http://localhost:3000/requests", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              numReq,
+              dateOfAdd,
+              organziation,
+              Model,
+              Description,
+              Fio,
+              NumberPhone,
+              Status,
+              Master,
+              Problem,
+            }),
+          });
+        } catch (error) {
+          console.error("Ошибка при добавлении заявки", error);
+        }
+      }
+    </script>
+  </body>
+</html>
